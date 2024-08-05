@@ -6,23 +6,24 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export const register = async (req, res) => {
-  const { fullName, email, password, role, location, phoneNo } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+export const createBook = async (req, res) => {
+  const { title, author, category, quantity, available, rentalPrice } =
+    req.body;
 
   try {
-    const user = await prisma.user.create({
+    const book = await prisma.book.create({
       data: {
-        fullName,
-        email,
-        password: hashedPassword,
-        role,
-        location,
-        phoneNo,
+        title,
+        author,
+        category,
+        quantity,
+        available,
+        rentalPrice,
+        ownerId: req.user.id,
       },
     });
 
-    res.status(201).json(user);
+    res.status(201).json(book);
   } catch (error) {
     res.status(400).json(error);
   }

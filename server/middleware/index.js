@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { abilities } from "../middleware/permissions.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 

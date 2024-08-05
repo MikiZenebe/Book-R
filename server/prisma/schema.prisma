@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,40 +8,53 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
-  password String
-  role     Role
-  location String
-  phoneNo  String
-  books    Book[]
-  rentals  Rental[]
-}
-
-model Book {
   id        Int      @id @default(autoincrement())
-  title     String
-  author    String
-  category  String
-  quantity  Int
-  available Boolean  @default(true)
-  ownerId   Int
-  owner     User     @relation(fields: [ownerId], references: [id])
+  fullName  String
+  password  String
+  role      Role
+  email     String   @unique
+  location  String
+  phoneNo   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  books     Book[]
   rentals   Rental[]
 }
 
+model Book {
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  category    String
+  quantity    Int
+  available   Boolean  @default(true)
+  rentalPrice Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+  rentals     Rental[]
+}
+
 model Rental {
-  id         Int       @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   bookId     Int
   userId     Int
-  rentedAt   DateTime  @default(now())
+  rentedAt   DateTime     @default(now())
   returnedAt DateTime?
-  book       Book      @relation(fields: [bookId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
+  status     RentalStatus @default(PENDING)
+  book       Book         @relation(fields: [bookId], references: [id])
+  user       User         @relation(fields: [userId], references: [id])
 }
 
 enum Role {
   RENTER
   OWNER
   ADMIN
+}
+
+enum RentalStatus {
+  PENDING
+  APPROVED
+  RETURNED
 }
