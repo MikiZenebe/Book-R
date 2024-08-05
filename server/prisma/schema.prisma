@@ -18,6 +18,8 @@ model User {
   username String   @unique
   password String
   role     Role
+  location String
+  phoneNo  String
   books    Book[]
   rentals  Rental[]
 }
