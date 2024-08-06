@@ -1,5 +1,9 @@
 import express from "express";
-import { createBook } from "../controllers/bookController.js";
+import {
+  createBook,
+  deleteBook,
+  updateBook,
+} from "../controllers/bookController.js";
 import { authenticateJWT, authorize } from "../middleware/index.js";
 
 const router = express.Router();
@@ -10,7 +14,17 @@ router.post(
   authorize("create", "Book"),
   createBook
 );
-// router.post("/login", login);
-// router.get("/me", authenticateJWT, me);
+router.put(
+  "/updateBook/:id",
+  authenticateJWT,
+  authorize("update", "Book"),
+  updateBook
+);
+router.delete(
+  "/deleteBook/:id",
+  authenticateJWT,
+  authorize("delete", "Book"),
+  deleteBook
+);
 
 export default router;
