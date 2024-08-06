@@ -7,7 +7,7 @@ const router = express.Router();
 router.post(
   "/createBook",
   authenticateJWT,
-  authorize({ action: "create", resource: "Book" }),
+  authorize("create", "Book"),
   createBook
 );
 // router.post("/login", login);

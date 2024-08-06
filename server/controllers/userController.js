@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { genTokenAndSetCookie } from "../helper/genToken.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -22,6 +23,7 @@ export const register = async (req, res) => {
       },
     });
 
+    genTokenAndSetCookie(user.id, res); // Using Prisma user id instead of _id
     res.status(201).json(user);
   } catch (error) {
     res.status(400).json(error);
@@ -33,11 +35,9 @@ export const login = async (req, res) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (user && (await bcrypt.compare(password, user.password))) {
-    const accessToken = jwt.sign(
-      { email: user.email, role: user.role },
-      JWT_SECRET
-    );
-    res.json({ accessToken });
+    genTokenAndSetCookie(user?.id, res);
+
+    res.status(200).json({ user });
   } else {
     res.sendStatus(401);
   }

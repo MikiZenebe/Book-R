@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 
@@ -7,6 +8,7 @@ import bookRoutes from "./routes/bookRoutes.js";
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 //Routes
 app.use("/api/user", userRoutes);
