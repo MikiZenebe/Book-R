@@ -2,6 +2,7 @@ import express from "express";
 import {
   createBook,
   deleteBook,
+  getAllBooks,
   updateBook,
 } from "../controllers/bookController.js";
 import { authenticateJWT, authorize } from "../middleware/index.js";
@@ -26,5 +27,7 @@ router.delete(
   authorize("delete", "Book"),
   deleteBook
 );
+
+router.get("/allBooks", getAllBooks);
 
 export default router;

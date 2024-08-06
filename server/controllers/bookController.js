@@ -53,3 +53,8 @@ export const deleteBook = async (req, res) => {
     res.status(400).json({ error: "Failed to delete book" + error });
   }
 };
+
+export const getAllBooks = async (req, res) => {
+  const books = await prisma.book.findMany();
+  res.json(books);
+};
