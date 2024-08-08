@@ -9,8 +9,8 @@ export default function DashboardHeader({ role }) {
         color: "black",
         boxShadow: "none",
         borderBottom: "1px solid #e0e0e0",
-
-        textAlign: "center",
+        padding: "0 240px",
+        margin: "0 auto",
       }}
     >
       <Toolbar>
