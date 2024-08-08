@@ -1,21 +1,38 @@
 import { useState } from "react";
 import {
-  Box,
-  Button,
-  Checkbox,
   Container,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
   Grid,
-  Radio,
-  RadioGroup,
-  TextField,
   Typography,
+  Box,
+  TextField,
+  Button,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { z } from "zod";
+import axios from "axios";
 
-export default function Signup() {
+// Define the Zod schema for form validation
+const registrationSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    confirmPassword: z.string().min(6, "Password confirmation is required"),
+    location: z.string().min(1, "Location is required"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+    termsAccepted: z.literal(true, {
+      errorMap: () => ({ message: "You must accept the terms and conditions" }),
+    }),
+    role: z.enum(["Owner", "Admin"], "Role is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"], // path of error
+  });
+
+const Register = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,41 +40,65 @@ export default function Signup() {
     location: "",
     phoneNumber: "",
     termsAccepted: false,
-    role: "owner",
+    role: "Owner", // Default role is Owner
   });
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleCheckboxChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.checked,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // handle form submission logic here
+
+    try {
+      // Validate the form data using Zod
+      registrationSchema.parse(formData);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/user/register",
+        formData
+      );
+
+      if (response.status === 201) {
+        // Navigate to login page after successful registration
+        navigate("/login");
+      }
+    } catch (err) {
+      // Handle validation or API errors
+      if (err instanceof z.ZodError) {
+        const fieldErrors = {};
+        err.errors.forEach((error) => {
+          fieldErrors[error.path[0]] = error.message;
+        });
+        setErrors(fieldErrors);
+      } else {
+        alert(err.response?.data?.message || "Registration failed");
+      }
+    }
   };
 
   return (
-    <Container
-      component="main"
-      maxWidth="lg"
-      sx={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Grid container sx={{ height: "100%" }}>
+    <Container component="main" maxWidth="500px">
+      <Grid container>
         <Grid
           item
           xs={12}
           md={6}
           sx={{
             backgroundColor: "#0a1929",
-            height: "100%",
+            height: "auto",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -67,41 +108,19 @@ export default function Signup() {
             📚
           </Typography>
         </Grid>
-
-        <Grid item xs={12} md={6} sx={{ padding: 6 }}>
+        <Grid item xs={12} md={6} sx={{ padding: 4 }}>
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "start",
+              alignItems: "center",
             }}
           >
-            <Typography variant="h6"> 📚 Book Rent</Typography>
-            <Typography variant="h7" gutterBottom mt={1}>
-              Signup as{" "}
-              {formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
+            <Typography variant="h5">Book Rent</Typography>
+            <Typography variant="h6" gutterBottom>
+              Signup as {formData.role}
             </Typography>
-
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                <RadioGroup
-                  row
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <FormControlLabel
-                    value="owner"
-                    control={<Radio />}
-                    label="Owner"
-                  />
-                  <FormControlLabel
-                    value="admin"
-                    control={<Radio />}
-                    label="Admin"
-                  />
-                </RadioGroup>
-              </FormControl>
               <TextField
                 margin="normal"
                 required
@@ -113,6 +132,8 @@ export default function Signup() {
                 autoFocus
                 value={formData.email}
                 onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
               />
               <TextField
                 margin="normal"
@@ -125,6 +146,8 @@ export default function Signup() {
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
               />
               <TextField
                 margin="normal"
@@ -136,6 +159,8 @@ export default function Signup() {
                 id="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
               />
               <TextField
                 margin="normal"
@@ -147,6 +172,8 @@ export default function Signup() {
                 id="location"
                 value={formData.location}
                 onChange={handleChange}
+                error={!!errors.location}
+                helperText={errors.location}
               />
               <TextField
                 margin="normal"
@@ -158,7 +185,29 @@ export default function Signup() {
                 id="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleChange}
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber}
               />
+
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                select
+                name="role"
+                label="Role"
+                id="role"
+                value={formData.role}
+                onChange={handleChange}
+                error={!!errors.role}
+                helperText={errors.role}
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="Owner">Owner</option>
+                <option value="Admin">Admin</option>
+              </TextField>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -166,12 +215,11 @@ export default function Signup() {
                     color="primary"
                     name="termsAccepted"
                     checked={formData.termsAccepted}
-                    onChange={handleChange}
+                    onChange={handleCheckboxChange}
                   />
                 }
                 label="I accept the Terms and Conditions"
               />
-
               <Button
                 type="submit"
                 fullWidth
@@ -180,7 +228,6 @@ export default function Signup() {
               >
                 Sign Up
               </Button>
-
               <Grid container justifyContent="center">
                 <Grid item sx={{ display: "flex", gap: "3px" }}>
                   <Typography>Already have an account?</Typography>
@@ -195,4 +242,6 @@ export default function Signup() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default Register;
